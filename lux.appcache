@@ -1,0 +1,11 @@
+CACHE MANIFEST
+
+#V20150411-test
+
+CACHE:
+/
+/index.html
+/default.css
+/crypto.js
+/totp.js
+/main.js
