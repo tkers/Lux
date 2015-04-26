@@ -23,7 +23,7 @@ window.setInterval(function () {
 	
 	var expire = getExpiry();
 	if (expire > lastExpire) {
-		token = generateTOTP("twzunjmhli73wsv2");
+		var token = generateTOTP("twzunjmhli73wsv2");
 		serviceName.innerHTML = "GitHub";
 		spinCode(serviceCode, token);
 	}

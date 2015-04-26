@@ -1,12 +1,12 @@
 function getExpiry() {
 
-	var timeStep = 30;
+	var stepSize = 30;
 
-	var time = new Date().getTime() / 1000;	
-	var timeLeft = time % timeStep;
+	var seconds = new Date().getTime() / 1000;
+	var sinceStep = seconds % stepSize;
 	
 	// return seconds left in current timestep
-	return timeStep - timeLeft;
+	return stepSize - sinceStep;
 }
 
 function generateTOTP(key) {
@@ -25,7 +25,7 @@ function generateTOTP(key) {
 	var token = value % (Math.pow(10, tokenLength));
 	
 	// pad with zeroes
-	token = zeropad(token, 6);
+	token = zeroPad(token, tokenLength);
 	
 	// all done!
 	return token;
@@ -35,71 +35,91 @@ function generateHOTP(key, counter) {
 
 	// convert key and counter to bytes
 	counter = decToBytes(counter, 8);
-	key = b32ToBytes(key.toUpperCase());
+	key = b32ToBytes(key);
 
 	// calculate HMAC value
-	var hmac = Crypto.HMAC(Crypto.SHA1, counter, key);
-	var bytes = hexToBytes(hmac);
+	var hash = Crypto.HMAC(Crypto.SHA1, counter, key);
+	var bytes = hexToBytes(hash);
 	
 	// truncate hash
 	var off = bytes[19] & 0xf;
-	var truncate = (bytes[off] & 0x7f) << 24 |
-				   (bytes[off + 1] & 0xff) << 16 |
-		  		   (bytes[off + 2] & 0xff) << 8  |
-				   (bytes[off + 3] & 0xff);
-				   				   
-	return truncate;
+	return (bytes[off]     & 0x7f) << 24 |
+           (bytes[off + 1] & 0xff) << 16 |
+           (bytes[off + 2] & 0xff) << 8  |
+           (bytes[off + 3] & 0xff);
 }
 
-function decToBytes(x, len) {
-	var bytes = new Array();
+function decToBytes(x, n) {
+
+	var bytes = [];
 	while (x > 0) {
 		bytes.unshift(x & 255);
 		x >>= 8;
 	}
-	while (bytes.length < len) {
-		bytes.unshift(0);
-	}
+
+	zeroPadArray(bytes, n);
+
 	return bytes;
 }
 
-function b32ToBytes(b32) {
-	var hex = b32ToHex(b32);
-	var bytes = hexToBytes(hex);
-	return bytes;
+function b32ToBytes(x, n) {
+
+    var bits = b32ToBits(x);
+    return bitsToBytes(bits, n);
 }
 
-function hexToBytes(x) {
-	var bytes = new Array();
-	for(var c = 0; c < x.length; c += 2) {
-		bytes.push(parseInt(x.substr(c, 2), 16));
+function hexToBytes(x, n) {
+
+	var bytes = [];
+	for(var i = 0; i < x.length; i += 2) {
+        var byte = parseInt(x.substr(i, 2), 16);
+		bytes.push(byte);
 	}
+
+    zeroPadArray(bytes, n);
+
 	return bytes;
 }	
 
-function b32ToHex(x) {
+function b32ToBits(x) {
 
-	var dict = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
-	
-	var bits = "";
-	for(var i = 0; i < x.length; i++){
-		var value = dict.indexOf(x.charAt(i).toUpperCase());
-		bits += zeropad(value.toString(2), 5);
-	}
-	
-	var hex = "";
-	for(i = 0; i + 4 <= bits.length; i += 4){
-		var chunk = bits.substr(i, 4);
-		hex += parseInt(chunk, 2).toString(16);
-	}
-	
-	return hex;
+    var dict = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+    var bits = "";
+    for (var i = 0; i < x.length; i++) {
+        var value = dict.indexOf(x.charAt(i).toUpperCase());
+        bits += zeroPad(value.toString(2), 5);
+    }
+
+    return bits;
 }
 
-function zeropad(value, len) {
-	value = value.toString();
-	while (value.length < len) {
-		value = "0" + value;
+function bitsToBytes(x, n) {
+
+    var bytes = [];
+    for(var i = 0; i < x.length; i += 8) {
+        var byte = parseInt(x.substr(i, 8), 2);
+        bytes.push(byte);
+    }
+
+    zeroPadArray(bytes, n);
+
+    return bytes;
+}
+
+function zeroPad(x, n) {
+
+	x = x.toString();
+	while (x.length < n) {
+		x = "0" + x;
 	}
-	return value;
+
+	return x;
+}
+
+function zeroPadArray(a, n) {
+
+    while (a.length < n) {
+        a.unshift(0);
+    }
 }
