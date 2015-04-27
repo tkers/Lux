@@ -17,21 +17,23 @@ window.onload = function () {
     var serviceList = document.getElementById("servicelist");
     var serviceTimer = document.getElementById("servicetimer");
 
-    var lastExpire = -1;
-
     var totp = new TOTP("twzunjmhli73wsv2");
+    serviceName.innerHTML = "GitHub";
 
-    window.setInterval(function () {
+    var loop = function () {
 
         var expire = totp.getTTL();
         if (expire > lastExpire) {
             var token = totp.getToken();
-            serviceName.innerHTML = "GitHub";
             spinCode(serviceCode, token);
         }
         lastExpire = expire;
         var timerWidth = 100 * expire / 30;
         serviceTimer.style.width = timerWidth + "%";
-    }, 10);
 
+        window.requestAnimationFrame(loop);
+    };
+
+    var lastExpire = -1;
+    loop();
 };
