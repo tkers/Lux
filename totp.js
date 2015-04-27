@@ -1,5 +1,14 @@
 var TOTP = (function () {
 
+    /**
+     * Creates a new TOTP object used for generating and verifying tokens
+     *
+     * @param {string}       key                Base32 encoded key
+     * @param {number=}      options.size       Number of digits in generated token (default: 6)
+     * @param {number=}      options.interval   Number of seconds that a token is valid (default: 30)
+     *
+     * @constructor
+     */
     function TOTP(key, options) {
 
         if (!key) throw new Error("No key provided");
@@ -10,6 +19,13 @@ var TOTP = (function () {
         this._interval = options.interval || 30;
     }
 
+    /**
+     * Calculate the currently valid token
+     *
+     * @param {Date=}       date        Optional date/time for which to calculate token (default: current date)
+     *
+     * @returns {string}                The token
+     */
     TOTP.prototype.getToken = function (date) {
 
         // defaults to getting current token
@@ -32,6 +48,12 @@ var TOTP = (function () {
         return token;
     };
 
+    /**
+     * Returns the seconds left until the current token should be renewed.
+     * Note that depending on the defined <window>, the token will still validate after this time period.
+     *
+     * @returns {number}         Number of seconds that the token is still valid
+     */
     TOTP.prototype.getTTL = function () {
 
         var now = new Date().getTime() / 1000;
@@ -41,6 +63,15 @@ var TOTP = (function () {
         return this._interval - age;
     };
 
+    /**
+     * Generate a HOTP token
+     *
+     * @param {string}      key         Base32 encoded key to use
+     * @param {number}      counter     Value of the counter
+     *
+     * @returns {number}                The HOTP token
+     * @private
+     */
     function generateHOTP(key, counter) {
 
     	// convert key and counter to bytes
@@ -59,6 +90,15 @@ var TOTP = (function () {
                (bytes[off + 3] & 0xff);
     }
 
+    /**
+     * Converts decimal number to byte array
+     *
+     * @param {number}      x       The number to convert
+     * @param {number}      n       Minimum length of the array (will be zero padded)
+     *
+     * @returns {Array}             The byte array
+     * @private
+     */
     function decToBytes(x, n) {
 
     	var bytes = [];
@@ -72,12 +112,28 @@ var TOTP = (function () {
     	return bytes;
     }
 
+    /**
+     * Converts a base32 encoded string to byte array
+     *
+     * @param {string}      x       The base32 encoded string to convert
+     *
+     * @returns {Array}             The byte array
+     * @private
+     */
     function b32ToBytes(x) {
 
         var bits = b32ToBits(x);
         return bitsToBytes(bits);
     }
 
+    /**
+     * Converts a HEX value to byte array
+     *
+     * @param {string}      x       The HEX value
+     *
+     * @returns {Array}             The byte array
+     * @private
+     */
     function hexToBytes(x) {
 
     	var bytes = [];
@@ -89,6 +145,14 @@ var TOTP = (function () {
     	return bytes;
     }
 
+    /**
+     * Converts a base32 encoded string to bits
+     *
+     * @param {string}      x       The base32 encoded string to convert
+     *
+     * @returns {string}            The bits
+     * @private
+     */
     function b32ToBits(x) {
 
         var dict = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
@@ -102,6 +166,14 @@ var TOTP = (function () {
         return bits;
     }
 
+    /**
+     * Converts bits to bytes
+     *
+     * @param {string}      x       The bits to convert
+     *
+     * @returns {Array}             The byte array
+     * @private
+     */
     function bitsToBytes(x) {
 
         var bytes = [];
@@ -113,6 +185,15 @@ var TOTP = (function () {
         return bytes;
     }
 
+    /**
+     * Zero pads a number
+     *
+     * @param {number|string}       x       The number to zero pad
+     * @param {number}              n       Desired length after zero padding
+     *
+     * @returns {String}                    The zero padded number
+     * @private
+     */
     function zeroPad(x, n) {
 
     	x = x.toString();
@@ -123,6 +204,14 @@ var TOTP = (function () {
     	return x;
     }
 
+    /**
+     * Zero pads an array
+     *
+     * @param {Array}       a       The array to zero pad
+     * @param {number}      n       Desired length of array after zero padding
+     *
+     * @private
+     */
     function zeroPadArray(a, n) {
 
         while (a.length < n) {
