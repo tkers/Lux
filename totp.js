@@ -6,7 +6,8 @@ var TOTP = (function () {
      * @param {string}       key                Base32 encoded key
      * @param {number=}      options.size       Number of digits in generated token (default: 6)
      * @param {number=}      options.interval   Number of seconds that a token is valid (default: 30)
-     *
+     * @param {window=}      options.window     Window in which a token is concidered valid (default: 1)
+     *                                          (<interval> seconds older or newer than current token is still valid)
      * @constructor
      */
     function TOTP(key, options) {
@@ -17,6 +18,7 @@ var TOTP = (function () {
         this._key = key;
         this._size = options.size || 6;
         this._interval = options.interval || 30;
+        this._window = options.window || 1;
     }
 
     /**
@@ -61,6 +63,34 @@ var TOTP = (function () {
 
         // return seconds left
         return this._interval - age;
+    };
+
+    /**
+     * Verifies a given token
+     * Tokens that are <window> timesteps older/newer than the current token (+/- 30 seconds with default values)
+     * are also considered valid to allow for delays and inaccuracies in the clients clock.
+     *
+     * @param {string}      token       The token to verify
+     *
+     * @returns {boolean}               Whether the token is valid
+     */
+    TOTP.prototype.verify = function (token) {
+
+        var now = new Date().getTime();
+        for (var i = -this._window; i <= this._window; i++) {
+
+            // get time offset in seconds
+            var offset = i * this._interval * 1000;
+
+            // calculate valid token for timeframe
+            var valid = this.getToken(new Date(now + offset));
+
+            // return true if the given token is valid
+            if (valid === token) return true;
+        }
+
+        // no valid token matched
+        return false;
     };
 
     /**
