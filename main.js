@@ -1,12 +1,13 @@
 function spinCode(elem, newCode) {
 
 	var spinner = window.setInterval(function () {
-		elem.innerHTML = Math.floor(Math.random() * 900000) + 100000;
+		var token = Math.floor(Math.random() * 900000) + 100000;
+		elem.innerHTML = token.toString().split("").map(function (n) { return "<span class='digit'>"+n+"</span>"; }).join("");
 	}, 25);
 	
 	window.setTimeout(function () {
 		window.clearTimeout(spinner);
-		elem.innerHTML = newCode;
+		elem.innerHTML = newCode.toString().split("").map(function (n) { return "<span class='digit'>"+n+"</span>"; }).join("");
 	}, 400);
 }
 
@@ -15,7 +16,7 @@ window.onload = function () {
     var serviceName = document.getElementById("servicename");
     var serviceCode = document.getElementById("servicecode");
     var serviceList = document.getElementById("servicelist");
-    var serviceTimer = document.getElementById("servicetimer");
+    //var serviceTimer = document.getElementById("servicetimer");
 
     var totp = new TOTP("twzunjmhli73wsv2");
     serviceName.innerHTML = "GitHub";
@@ -28,8 +29,8 @@ window.onload = function () {
             spinCode(serviceCode, token);
         }
         lastExpire = expire;
-        var timerWidth = 100 * expire / 30;
-        serviceTimer.style.width = timerWidth + "%";
+        //var timerWidth = 100 * expire / 30;
+        //serviceTimer.style.width = timerWidth + "%";
 
         window.requestAnimationFrame(loop);
     };
