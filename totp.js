@@ -44,7 +44,7 @@ var TOTP = (function () {
         var token = value % (Math.pow(10, this._size));
 
         // pad with zeroes
-        token = zeroPad(token, this._size);
+        token = zeroPadString(token, this._size);
 
         // all done!
         return token;
@@ -190,7 +190,7 @@ var TOTP = (function () {
         var bits = "";
         for (var i = 0; i < x.length; i++) {
             var value = dict.indexOf(x.charAt(i).toUpperCase());
-            bits += zeroPad(value.toString(2), 5);
+            bits += zeroPadString(value.toString(2), 5);
         }
 
         return bits;
@@ -224,7 +224,7 @@ var TOTP = (function () {
      * @returns {String}                    The zero padded number
      * @private
      */
-    function zeroPad(x, n) {
+    function zeroPadString(x, n) {
 
     	x = x.toString();
     	while (x.length < n) {
